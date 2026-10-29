@@ -8,6 +8,7 @@ node --experimental-transform-types library/themes/gem-purple-stage-v3.1/build-t
 node --experimental-transform-types runtime/validate-theme.ts library/themes/gem-purple-stage-v3.1
 node --experimental-transform-types --test runtime/injection-session.test.ts runtime/repair-renderer.test.ts
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-window-restore.ps1
+node --experimental-transform-types scripts/test-home-cards.ts
 node --experimental-transform-types scripts/check-public-source.ts
 node --experimental-transform-types runtime/apply-theme.ts status
 node --experimental-transform-types runtime/qa-contrast.ts
@@ -19,6 +20,8 @@ node --experimental-transform-types runtime/qa-layout.ts
 布局检查仅覆盖实际打开的页面。升级 Codex 后，应分别检查聊天、工作和 Codex 首页、含正文的对话、通知列表、设置、终端、首页选项及收起侧栏的悬浮列表，并在宽窄窗口中实际滚动。相关计数为 0 表示该组件尚未被检查，不能据此判定通过。适配要点见 [兼容性说明](compatibility.md)。
 
 ChatGPT 多行输入的诊断计数为 `multilineComposers` 和 `composerActionGroups`。检查长输入、展开/收起后底部无灰条、控件不覆盖编辑区。双屏恢复测试应在缩放率不同的屏幕分别最小化/恢复，确认普通窗口尺寸保持，并检查最大化和手动调整窗口仍正常。
+
+首页卡片诊断计数为 `homeShortcutGroups` 和 `homeShortcutButtons`，正常可见组应含 4 个完整按钮。`test-home-cards.ts` 使用本机 Chrome/Edge，在隔离页面运行真实主题和 DOM 适配代码，覆盖两种模式、宽窄窗口、侧栏宽度和右面板，并检查点击插入提示词。可用 `--browser` 指定浏览器；不安装软件，不读取聊天内容。原生客户端首页副本的本机检查与 CI 的隔离夹具检查分别记录，不能视为所有原生页面的端到端验收。
 
 主区域空白时，先运行诊断，再按需恢复：
 
@@ -45,7 +48,7 @@ powershell.exe -NoProfile -File scripts/test-release.ps1
 发布到现有私有仓库：
 
 ```powershell
-gh release create v1.2.1 dist/v1.2.1/* --verify-tag --title 'G.E.M. Purple Stage 1.2.1' --notes-file docs/releases/v1.2.1.md
+gh release create v1.2.2 dist/v1.2.2/* --verify-tag --title 'G.E.M. Purple Stage 1.2.2' --notes-file docs/releases/v1.2.2.md
 ```
 
 先提交、同步代码并推送对应 tag，再执行发布。构建产物只上传 Release，不提交 Git。构建 EXE 未做商业代码签名；保留 Release 校验文件供接收者核对，不建议关闭系统安全功能。

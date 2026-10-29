@@ -23,6 +23,9 @@ jobs:
       - name: Mixed-DPI window restore regression tests
         shell: powershell
         run: ./scripts/test-window-restore.ps1
+      - name: Home shortcut responsive layout
+        shell: powershell
+        run: node --disable-warning=ExperimentalWarning --experimental-transform-types scripts/test-home-cards.ts
       - name: Build offline packages
         shell: powershell
         run: ./scripts/build-release.ps1

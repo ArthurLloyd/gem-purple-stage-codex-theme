@@ -703,13 +703,14 @@ export function runtimeSource(themeId: string, backgroundScope: string, css: str
           const shell = main.querySelector('[data-gem-v31-home-composer] .gem-v3-composer-shell');
           const cards = main.querySelector('.gem-v3-cards');
           if (shell && cards) {
+            observed.add(cards);
             const mainRect = main.getBoundingClientRect();
             const shellRect = shell.getBoundingClientRect();
-            const cardsHeight = cards.getBoundingClientRect().height;
             const photoRect = main.querySelector('.gem-v31-home-polaroid')?.getBoundingClientRect();
             const composerRect = main.querySelector('.composer-surface-chrome')?.getBoundingClientRect();
             const photoBesideComposer = photoRect && composerRect && photoRect.left >= composerRect.right + 18;
-            const gap = photoBesideComposer ? Math.max(24, Math.ceil(shellRect.top - photoRect.top + 12)) : 24;
+            const compactGap = parseFloat(getComputedStyle(cards).getPropertyValue('--gem-shortcut-composer-gap')) || 24;
+            const gap = photoBesideComposer ? Math.max(compactGap, Math.ceil(shellRect.top - photoRect.top + 12)) : compactGap;
             // The native composer grows upward as a draft gets longer. Anchor
             // shortcuts above its actual top edge instead of a fixed bottom.
             const bottom = Math.max(0, Math.round(mainRect.bottom - shellRect.top + gap));
@@ -717,10 +718,12 @@ export function runtimeSource(themeId: string, backgroundScope: string, css: str
             if (main.style.getPropertyValue('--gem-v31-home-cards-bottom') !== value) main.style.setProperty('--gem-v31-home-cards-bottom', value);
             const heading = main.querySelector('[data-gem-v31-home-heading]') || main.querySelector('.heading-xl');
             const headingBottom = heading?.getBoundingClientRect().bottom || mainRect.top;
-            const cardsTop = shellRect.top - gap - cardsHeight;
+            // Read the positioned grid after pixel rounding rather than hiding
+            // a fitting row because an estimated edge differs by a fraction.
+            const cardsTop = cards.getBoundingClientRect().top;
             if (shellRect.top < headingBottom + 16) main.dataset.gemV31HomeHeadingHidden = 'true';
             else main.removeAttribute('data-gem-v31-home-heading-hidden');
-            if (cardsTop < Math.max(mainRect.top + 28, headingBottom + 24)) main.dataset.gemV31HomeCardsHidden = 'true';
+            if (cardsTop < Math.max(mainRect.top + 28, headingBottom + compactGap)) main.dataset.gemV31HomeCardsHidden = 'true';
             else main.removeAttribute('data-gem-v31-home-cards-hidden');
           } else main.dataset.gemV31HomeCardsHidden = 'true';
         } else {

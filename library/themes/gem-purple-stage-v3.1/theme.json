@@ -3,7 +3,7 @@
   "id": "gem-purple-stage-v3-1",
   "displayName": "G.E.M. Purple Stage v3.1",
   "description": "Refined G.E.M. stage workbench with quiet conversation artwork and editorial navigation.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "mode": "dark",
   "css": "theme.css",
   "art": "assets/artwork.webp",

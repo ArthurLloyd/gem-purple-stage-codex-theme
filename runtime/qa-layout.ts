@@ -30,7 +30,7 @@ export const layoutProbeSource = `(() => {
     return {left,right,top,bottom};
   };
   const mains = [...document.querySelectorAll('main[data-app-shell-main-surface],main.main-surface,main[class*="_MainContentSurface_"]')];
-  let searchInputs = 0, placeholders = 0, suggestionMenus = 0, homeActionBrowsers = 0, homeActionRows = 0, homeExpandedEditors = 0, sidebarPeeks = 0, sidebarActivityRows = 0, multilineComposers = 0, composerActionGroups = 0;
+  let searchInputs = 0, placeholders = 0, suggestionMenus = 0, homeActionBrowsers = 0, homeActionRows = 0, homeExpandedEditors = 0, sidebarPeeks = 0, sidebarActivityRows = 0, multilineComposers = 0, composerActionGroups = 0, homeShortcutGroups = 0, homeShortcutButtons = 0;
   for (const row of document.querySelectorAll('aside.app-shell-left-panel .sidebar-item:has([data-thread-secondary-title])')) {
     if (!visible(row) || row.closest('[inert]')) continue;
     sidebarActivityRows++;
@@ -84,6 +84,22 @@ export const layoutProbeSource = `(() => {
     if (overlaps(heading, main.querySelector('.gem-v3-brand'))) issues.push('home-title-overlap-brand');
     if (overlaps(main.querySelector('[data-gem-v31-home-heading]'), main.querySelector('.gem-v3-cards'))) issues.push('home-heading-overlap-shortcuts');
     if (main.dataset.codexthemesPage === 'home') {
+      const cards = main.querySelector('.gem-v3-cards');
+      if (visible(cards)) {
+        homeShortcutGroups++;
+        const bounds = clippedRect(cards);
+        const buttons = [...cards.querySelectorAll('button')];
+        if (buttons.length !== 4) issues.push('home-shortcuts-incomplete');
+        if (cards.scrollWidth > cards.clientWidth + 1 || cards.scrollHeight > cards.clientHeight + 1) issues.push('home-shortcuts-scroll-overflow');
+        for (const button of buttons) {
+          homeShortcutButtons++;
+          const r = button.getBoundingClientRect();
+          if (r.left < bounds.left - 1 || r.right > bounds.right + 1 || r.top < bounds.top - 1 || r.bottom > bounds.bottom + 1) issues.push('home-shortcut-clipped');
+          const title = button.querySelector('b');
+          if (title && title.scrollWidth > title.clientWidth + 1) issues.push('home-shortcut-title-truncated');
+          if (r.height < 44) issues.push('home-shortcut-target-too-small');
+        }
+      }
       const browser = main.dataset.gemV31HomeBrowser;
       const nativeOptions = main.querySelector('[class~="group/home-suggestions-header"],[role="tabpanel"]');
       const takeover = main.querySelector('[data-expanded-composer],[data-homepage-takeover],[data-home-inline-preview]');
@@ -149,7 +165,7 @@ export const layoutProbeSource = `(() => {
     }
   }
   return {issues: [...new Set(issues)], surfaces: mains.length, visibleSurfaces: mains.filter(visible).length,
-    searchInputs, placeholders, suggestionMenus, homeActionBrowsers, homeActionRows, homeExpandedEditors, sidebarPeeks, sidebarActivityRows, multilineComposers, composerActionGroups};
+    searchInputs, placeholders, suggestionMenus, homeActionBrowsers, homeActionRows, homeExpandedEditors, sidebarPeeks, sidebarActivityRows, multilineComposers, composerActionGroups, homeShortcutGroups, homeShortcutButtons};
 })()`;
 
 export async function checkLayouts(port = 9335) {
