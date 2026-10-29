@@ -110,6 +110,11 @@ try {
       assert.deepEqual(result.issues, [], label+': '+JSON.stringify({cards,result}));
       assert.equal(result.homeShortcutButtons, 4, label+' shows all four shortcuts: '+JSON.stringify(cards));
       assert.equal(cards.display, 'grid', label+' uses a grid');
+      const hoverPoint = await evaluate(client, `(() => {const r=document.querySelector('.gem-v3-cards button').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+      await client.call('Input.dispatchMouseEvent', {type:'mouseMoved',...hoverPoint});
+      const hovered = await evaluate(client, layoutProbeSource);
+      assert.deepEqual(hovered.issues, [], label+' hover remains visible and unobstructed');
+      await client.call('Input.dispatchMouseEvent', {type:'mouseMoved',x:0,y:0});
       if (screenshots && [620,805,1100,1750].includes(width)) {
         const shot = await client.call('Page.captureScreenshot', {format:'png'});
         await fs.writeFile(path.join(screenshots,`${mode}-${width}-${panel}.png`),Buffer.from(shot.data,'base64'));

@@ -87,13 +87,13 @@ export const layoutProbeSource = `(() => {
       const cards = main.querySelector('.gem-v3-cards');
       if (visible(cards)) {
         homeShortcutGroups++;
-        const bounds = clippedRect(cards);
         const buttons = [...cards.querySelectorAll('button')];
         if (buttons.length !== 4) issues.push('home-shortcuts-incomplete');
         if (cards.scrollWidth > cards.clientWidth + 1 || cards.scrollHeight > cards.clientHeight + 1) issues.push('home-shortcuts-scroll-overflow');
         for (const button of buttons) {
           homeShortcutButtons++;
           const r = button.getBoundingClientRect();
+          const bounds = clippedRect(button);
           if (r.left < bounds.left - 1 || r.right > bounds.right + 1 || r.top < bounds.top - 1 || r.bottom > bounds.bottom + 1) issues.push('home-shortcut-clipped');
           const title = button.querySelector('b');
           if (title && title.scrollWidth > title.clientWidth + 1) issues.push('home-shortcut-title-truncated');
