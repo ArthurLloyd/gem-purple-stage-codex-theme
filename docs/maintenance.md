@@ -23,6 +23,8 @@ ChatGPT 多行输入的诊断计数为 `multilineComposers` 和 `composerActionG
 
 首页卡片诊断计数为 `homeShortcutGroups` 和 `homeShortcutButtons`，正常可见组应含 4 个完整按钮。`test-home-cards.ts` 使用本机 Chrome/Edge，在隔离页面运行真实主题和 DOM 适配代码，覆盖两种模式、宽窄窗口、侧栏宽度和右面板，并检查点击插入提示词。可用 `--browser` 指定浏览器；不安装软件，不读取聊天内容。原生客户端首页副本的本机检查与 CI 的隔离夹具检查分别记录，不能视为所有原生页面的端到端验收。
 
+图片检查在截图中临时隐藏文字后采样：左侧应有照片纹理，原始照片边缘应连续，文字所在背景需满足至少 4.5:1 对比度。`--image-report` 可输出测量值，`--screenshots` 可保存预览。这些像素检查补充人工视觉检查，不能单独证明图片构图自然。
+
 主区域空白时，先运行诊断，再按需恢复：
 
 ```powershell
@@ -48,7 +50,7 @@ powershell.exe -NoProfile -File scripts/test-release.ps1
 发布到现有私有仓库：
 
 ```powershell
-gh release create v1.2.2 dist/v1.2.2/* --verify-tag --title 'G.E.M. Purple Stage 1.2.2' --notes-file docs/releases/v1.2.2.md
+gh release create v1.2.3 dist/v1.2.3/* --verify-tag --title 'G.E.M. Purple Stage 1.2.3' --notes-file docs/releases/v1.2.3.md
 ```
 
 先提交、同步代码并推送对应 tag，再执行发布。构建产物只上传 Release，不提交 Git。构建 EXE 未做商业代码签名；保留 Release 校验文件供接收者核对，不建议关闭系统安全功能。

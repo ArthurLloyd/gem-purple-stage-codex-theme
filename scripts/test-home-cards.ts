@@ -63,6 +63,62 @@ const child = spawn(browser, ['--headless=new','--disable-gpu','--no-first-run',
   {windowsHide:true,stdio:'ignore'});
 let client: CdpClient | undefined;
 let cases = 0;
+const imageResults: Array<Record<string,unknown>> = [];
+async function measureArtwork(client: CdpClient) {
+  const geometry = await evaluate(client, `(async()=>{
+    const group=document.querySelector('.gem-v3-cards').getBoundingClientRect();
+    const clip={x:Math.floor(group.x),y:Math.floor(group.y),width:Math.ceil(group.right)-Math.floor(group.x),height:Math.ceil(group.bottom)-Math.floor(group.y),scale:1};
+    const cards=[];
+    for(const button of document.querySelectorAll('.gem-v3-cards button')) {
+      const r=button.getBoundingClientRect(),s=getComputedStyle(button),photo=s.getPropertyValue('--gem-card-photo');
+      const img=new Image();img.src=photo.slice(photo.indexOf('(')+1,photo.lastIndexOf(')')).trim().replaceAll('"','').replaceAll("'",'');await img.decode();
+      const border=parseFloat(s.borderLeftWidth),height=r.height-parseFloat(s.borderTopWidth)-parseFloat(s.borderBottomWidth);
+      const text=[...button.querySelectorAll('i,b,small')].filter(n=>getComputedStyle(n).display!=='none').map(n=>{
+        const range=document.createRange();range.selectNodeContents(n);const t=range.getBoundingClientRect();
+        return {x:t.x-clip.x,y:t.y-clip.y,w:t.width,h:t.height,color:getComputedStyle(n).color.match(/[0-9.]+/g).slice(0,3).map(Number)};
+      });
+      cards.push({x:r.x-clip.x,y:r.y-clip.y,w:r.width,h:r.height,edge:r.width-border-height*img.naturalWidth/img.naturalHeight,text});
+    }
+    const hide=document.createElement('style');hide.id='fixture-hide-card-text';hide.textContent='.gem-v3-cards :is(i,b,small){visibility:hidden!important}';document.head.append(hide);
+    return {clip,cards};
+  })()`);
+  try {
+    const shot = await client.call('Page.captureScreenshot', {format:'png',clip:geometry.clip});
+    return await evaluate(client, `(async()=>{
+      const bitmap=await createImageBitmap(await(await fetch(${JSON.stringify('data:image/png;base64,'+shot.data)})).blob());
+      const canvas=new OffscreenCanvas(bitmap.width,bitmap.height),ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);
+      const pixels=ctx.getImageData(0,0,bitmap.width,bitmap.height).data;
+      return ${JSON.stringify(geometry.cards)}.map(card=>{
+        const start=Math.ceil(card.y+card.h*.25),end=Math.floor(card.y+card.h*.75);
+        const column=x=>{
+          const rgb=[0,0,0];x=Math.round(card.x+x);
+          for(let y=start;y<end;y++){const i=(y*bitmap.width+x)*4;for(let c=0;c<3;c++)rgb[c]+=pixels[i+c]/(end-start);}
+          return rgb;
+        };
+        const columns=[];for(let x=Math.ceil(card.w*.15);x<card.w*.45;x++)columns.push(column(x));
+        const textureRange=[0,1,2].reduce((sum,c)=>sum+Math.max(...columns.map(p=>p[c]))-Math.min(...columns.map(p=>p[c])),0)/3;
+        let seamStep=0;
+        for(let x=Math.floor(card.edge)-3;x<=Math.ceil(card.edge)+3;x++) {
+          if(x<2||x>=card.w-2)continue;
+          const a=column(x),b=column(x+1);seamStep=Math.max(seamStep,a.reduce((sum,n,c)=>sum+Math.abs(n-b[c]),0)/3);
+        }
+        const luminance=rgb=>rgb.map(n=>{const v=n/255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4)}).reduce((s,n,c)=>s+n*[.2126,.7152,.0722][c],0);
+        let textContrast=100;
+        for(const text of card.text) {
+          const foreground=luminance(text.color);
+          for(let y=Math.ceil(text.y);y<text.y+text.h;y++)for(let x=Math.ceil(text.x);x<text.x+text.w;x++) {
+            if(x<0||y<0||x>=bitmap.width||y>=bitmap.height)continue;
+            const i=(y*bitmap.width+x)*4,background=luminance([pixels[i],pixels[i+1],pixels[i+2]]);
+            textContrast=Math.min(textContrast,(Math.max(foreground,background)+.05)/(Math.min(foreground,background)+.05));
+          }
+        }
+        return {textureRange:Number(textureRange.toFixed(2)),seamStep:Number(seamStep.toFixed(2)),textContrast:Number(textContrast.toFixed(2))};
+      });
+    })()`);
+  } finally {
+    await evaluate(client, "document.getElementById('fixture-hide-card-text')?.remove()");
+  }
+}
 try {
   let port = 0;
   for (let i=0; i<120 && !port; i++) {
@@ -92,7 +148,7 @@ try {
     await evaluate(client, source);
     await evaluate(client, 'document.fonts.ready.then(()=>true)');
     for (const [width,height,sidebar,panel] of [
-      [1750,1000,328,0], [1408,836,328,0], [1100,842,328,0], [805,842,328,0],
+      [1750,1000,328,0], [1408,836,328,0], [1215,812,328,0], [1100,842,328,0], [805,842,328,0],
       [820,600,328,0], [720,600,52,0], [620,520,52,0], [1440,640,328,0],
       [1750,1000,328,600], [1408,836,52,420], [480,720,52,0],
     ]) {
@@ -115,7 +171,16 @@ try {
       const hovered = await evaluate(client, layoutProbeSource);
       assert.deepEqual(hovered.issues, [], label+' hover remains visible and unobstructed');
       await client.call('Input.dispatchMouseEvent', {type:'mouseMoved',x:0,y:0});
-      if (screenshots && [620,805,1100,1750].includes(width)) {
+      if ([805,1215,1750].includes(width) && panel===0) {
+        const artwork = await measureArtwork(client);
+        for (const [index,metric] of artwork.entries()) {
+          imageResults.push({case:label,card:index+1,...metric});
+          assert.ok(metric.textureRange>=2,label+' card '+(index+1)+' has photographic texture behind the left text area: '+JSON.stringify(metric));
+          assert.ok(metric.seamStep<=7,label+' card '+(index+1)+' blends at the photo edge: '+JSON.stringify(metric));
+          assert.ok(metric.textContrast>=4.5,label+' card '+(index+1)+' keeps text readable over the photograph: '+JSON.stringify(metric));
+        }
+      }
+      if (screenshots && [620,805,1100,1215,1750].includes(width)) {
         const shot = await client.call('Page.captureScreenshot', {format:'png'});
         await fs.writeFile(path.join(screenshots,`${mode}-${width}-${panel}.png`),Buffer.from(shot.data,'base64'));
       }
@@ -130,8 +195,9 @@ try {
     assert.equal(new Set(prompts).size,4, mode+' actions insert four distinct prompts');
     assert.ok(prompts.every((p: string)=>p.startsWith('帮我')),mode+' actions insert prompts into the editor');
   }
-  console.log(`Home shortcut layout: ${cases} browser cases and 8 action checks passed (${nativeDirectory?'native fixture':'isolated fixture'}).`);
+  console.log(`Home shortcut layout: ${cases} browser cases, 8 action checks and ${imageResults.length} artwork pixel checks passed (${nativeDirectory?'native fixture':'isolated fixture'}).`);
 } finally {
+  if (process.argv.includes('--image-report')) await fs.writeFile(path.resolve(option('--image-report')),JSON.stringify(imageResults,null,2));
   if (client) { try { await client.call('Browser.close'); } catch {} client.close(); } else child.kill();
   await delay(300);
   assert.ok(profile.startsWith(temporaryRoot+path.sep),'Browser cleanup remains in .tmp');
