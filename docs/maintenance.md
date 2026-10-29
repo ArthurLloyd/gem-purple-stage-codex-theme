@@ -45,7 +45,7 @@ powershell.exe -NoProfile -File scripts/test-release.ps1
 发布到现有私有仓库：
 
 ```powershell
-gh release create v1.2.0 dist/v1.2.0/* --verify-tag --title 'G.E.M. Purple Stage 1.2.0' --notes-file docs/releases/v1.2.0.md
+gh release create v1.2.1 dist/v1.2.1/* --verify-tag --title 'G.E.M. Purple Stage 1.2.1' --notes-file docs/releases/v1.2.1.md
 ```
 
 先提交、同步代码并推送对应 tag，再执行发布。构建产物只上传 Release，不提交 Git。构建 EXE 未做商业代码签名；保留 Release 校验文件供接收者核对，不建议关闭系统安全功能。

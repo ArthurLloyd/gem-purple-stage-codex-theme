@@ -33,6 +33,11 @@ try {
     }
     $portable = Join-Path $work 'portable'
     [IO.Compression.ZipFile]::ExtractToDirectory($zip, $portable)
+    $packagedTheme = Get-Content -LiteralPath (Join-Path $portable 'library/themes/gem-purple-stage-v3.1/theme.json') -Raw | ConvertFrom-Json
+    Assert ($packagedTheme.version -eq $config.version) 'packaged theme version matches the release'
+    Assert (Test-Path -LiteralPath (Join-Path $portable 'launcher/watch-window-bounds.ps1')) 'window restore helper entry included'
+    Add-Type -Path (Join-Path $portable 'launcher/window-restore-guard.cs') -ReferencedAssemblies System.Windows.Forms
+    Assert ($null -ne ('GemPurple.WindowRestoreGuard' -as [type])) 'packaged window restore helper compiles with Windows PowerShell'
     Assert (-not (Test-Path -LiteralPath (Join-Path $portable 'fig'))) 'raw photographs excluded'
     Assert (-not (Test-Path -LiteralPath (Join-Path $portable 'library/state'))) 'runtime state excluded'
     $node = Join-Path $portable 'tools/node/node.exe'

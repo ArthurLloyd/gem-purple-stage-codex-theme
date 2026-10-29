@@ -7,7 +7,7 @@
 为 Codex 桌面应用打造的紫色舞台主题。
 
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-8064a2)
-![Version](https://img.shields.io/badge/version-1.2.0-b996eb)
+![Version](https://img.shields.io/badge/version-1.2.1-b996eb)
 ![Code License](https://img.shields.io/badge/code_license-Apache--2.0-blue)
 
 [下载安装](#安装) · [功能特性](#功能特性) · [使用说明](#使用说明) · [开发与构建](#开发与构建) · [更新记录](CHANGELOG.md)
@@ -18,7 +18,7 @@
 
 G.E.M. Purple Stage 为 Windows Codex 桌面应用提供统一的深紫配色、舞台人像和装饰布局，覆盖首页、对话、侧边栏、输入区、设置、弹窗与终端。
 
-主题通过本机 Chromium 调试接口加载，保留原生功能与交互，不修改 Codex 安装文件。当前发行版为 **1.2.0**，主题视觉版本为 **v3.1**。
+主题通过本机 Chromium 调试接口加载，保留原生功能与交互，不修改 Codex 安装文件。当前发行版为 **1.2.1**，主题视觉版本为 **v3.1**。
 
 ## 功能特性
 
@@ -45,7 +45,7 @@ G.E.M. Purple Stage 为 Windows Codex 桌面应用提供统一的深紫配色、
 ### 推荐：安装程序
 
 1. 前往 [Releases](https://github.com/ArthurLloyd/gem-purple-stage-codex-theme/releases/latest)。
-2. 下载 `gem-purple-stage-1.2.0-windows-x64-setup.exe`。
+2. 下载 `gem-purple-stage-1.2.1-windows-x64-setup.exe`。
 3. 运行安装程序，选择安装目录。默认目录为 `%LOCALAPPDATA%\GemPurpleCodex`，无需管理员权限。
 4. 保存正在进行的工作，从桌面或开始菜单中的 **G.E.M. Purple Codex** 启动。
 
@@ -60,7 +60,7 @@ GitHub 自动生成的 **Source code ZIP** 不包含 Node.js 和编译后的启�
 Release 同时提供 `SHA256SUMS.txt`，可对照检查下载文件的 SHA-256：
 
 ```powershell
-Get-FileHash .\gem-purple-stage-1.2.0-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\gem-purple-stage-1.2.1-windows-x64-setup.exe -Algorithm SHA256
 ```
 
 安装程序尚未进行代码签名。下载的便携 ZIP 如被 Windows 标记为来自互联网，请在确认来源后，在 ZIP 属性中选择“解除锁定”再解压。
@@ -114,7 +114,7 @@ powershell.exe -NoProfile -File scripts/build-release.ps1
 powershell.exe -NoProfile -File scripts/test-release.ps1
 ```
 
-输出位于 `dist/v1.2.0/`。构建脚本校验固定版本的 Node.js 二进制和许可，并使用 Windows 自带的 .NET Framework 编译器生成 EXE。更多说明见 [维护文档](docs/maintenance.md)。
+输出位于 `dist/v1.2.1/`。构建脚本校验固定版本的 Node.js 二进制和许可，并使用 Windows 自带的 .NET Framework 编译器生成 EXE。更多说明见 [维护文档](docs/maintenance.md)。
 
 ```text
 launcher/       Windows 启动、MSIX 激活与安装辅助
