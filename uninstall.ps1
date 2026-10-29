@@ -19,7 +19,7 @@ if (Test-Path -LiteralPath $heartbeat) {
     }
 }
 Stop-PackageWatcher $root
-$shell = New-Object -ComObject WScript.Shell
+if (-not ('GemPurpleShortcutShell' -as [type])) { Add-Type -Path (Join-Path $root 'launcher/shell-shortcut.cs') }
 $allowedShortcuts = @(
     (Join-Path $root 'G.E.M. Purple Codex.lnk'),
     (Join-Path ([Environment]::GetFolderPath('Desktop')) 'G.E.M. Purple Codex.lnk'),
@@ -27,13 +27,13 @@ $allowedShortcuts = @(
 )
 foreach ($shortcut in @($manifest.shortcuts)) {
     if ($shortcut -in $allowedShortcuts -and (Test-Path -LiteralPath $shortcut)) {
-        $link = $shell.CreateShortcut($shortcut)
-        if ($link.TargetPath -eq (Join-Path $root 'GemPurpleCodex.exe')) {
+        $shortcutTarget = [GemPurpleShortcutShell]::ReadTarget($shortcut)
+        if ($shortcutTarget -eq (Join-Path $root 'GemPurpleCodex.exe')) {
             try { Remove-Item -LiteralPath $shortcut -Force } catch { $failures.Add($shortcut) }
         }
     }
 }
-$recoveryFiles = @('uninstall.ps1', 'Uninstall.cmd', 'launcher/package-tools.ps1')
+$recoveryFiles = @('uninstall.ps1', 'Uninstall.cmd', 'launcher/package-tools.ps1', 'launcher/shell-shortcut.cs')
 foreach ($entry in @($manifest.files | Where-Object { $_.path -notin $recoveryFiles })) {
     $file = Resolve-PackageFile $root $entry.path
     try { if (Test-Path -LiteralPath $file -PathType Leaf) { Remove-Item -LiteralPath $file -Force } } catch { $failures.Add($file) }

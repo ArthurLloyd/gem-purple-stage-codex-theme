@@ -83,10 +83,10 @@ try {
     New-Item -ItemType Directory -Path $shortcutDesktop, $shortcutPrograms -Force | Out-Null
     & $powershell -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $target 'install-gem-purple-shortcut.ps1') -ProjectRoot $target -DesktopDirectory $shortcutDesktop -ProgramsDirectory $shortcutPrograms
     Assert ($LASTEXITCODE -eq 0) 'shortcut generation with client or launcher icon'
-    $shell = New-Object -ComObject WScript.Shell
+    if (-not ('GemPurpleShortcutShell' -as [type])) { Add-Type -Path (Join-Path $target 'launcher/shell-shortcut.cs') }
     foreach ($folder in @($target, $shortcutDesktop, $shortcutPrograms)) {
-        $link = $shell.CreateShortcut((Join-Path $folder 'G.E.M. Purple Codex.lnk'))
-        Assert ($link.TargetPath -eq (Join-Path $target 'GemPurpleCodex.exe')) "native shortcut target: $folder"
+        $actualTarget = [GemPurpleShortcutShell]::ReadTarget((Join-Path $folder 'G.E.M. Purple Codex.lnk'))
+        Assert ($actualTarget -eq (Join-Path $target 'GemPurpleCodex.exe')) "native shortcut target: $folder (actual: $actualTarget)"
     }
     Remove-Item -LiteralPath (Join-Path $target 'G.E.M. Purple Codex.lnk') -Force
     & $powershell -NoProfile -ExecutionPolicy RemoteSigned -File (Join-Path $target 'uninstall.ps1')
