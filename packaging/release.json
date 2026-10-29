@@ -1,0 +1,8 @@
+{
+  "productId": "gem-purple-stage-codex-theme",
+  "version": "1.2.0",
+  "nodeVersion": "24.16.0",
+  "architecture": "x64",
+  "nodeSha256": "b3094d0b49f9ad602262a9921551737bb97637c05dd357a06ae98188d7290aa3",
+  "nodeLicenseSha256": "4573185d56580da2b890ba34a85a409257640f1c5632eade4300137266194d18"
+}

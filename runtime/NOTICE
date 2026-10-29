@@ -1,0 +1,15 @@
+CodexThemes Skills
+Copyright 2026 CodexThemes contributors
+
+Licensed under the Apache License, Version 2.0.
+
+Codex and OpenAI are trademarks of their respective owners. CodexThemes is an
+independent community project and is not endorsed by or affiliated with OpenAI.
+
+This project modifies the upstream runtime for Windows package activation,
+IPv6 discovery, session-owned injection, cached surfaces, sidebar interaction,
+layout diagnostics and safe renderer recovery.
+
+The upstream license covers the runtime code. G.E.M. photographs and derived
+artwork in this project have separate rights; they are not licensed
+under Apache-2.0. See THIRD-PARTY-NOTICES.md at the project root.

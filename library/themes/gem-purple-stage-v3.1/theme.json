@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "gem-purple-stage-v3-1",
+  "displayName": "G.E.M. Purple Stage v3.1",
+  "description": "Refined G.E.M. stage workbench with quiet conversation artwork and editorial navigation.",
+  "version": "1.2.0",
+  "mode": "dark",
+  "css": "theme.css",
+  "art": "assets/artwork.webp",
+  "design": {
+    "layoutMode": "editorial-showcase",
+    "backgroundScope": "workspace",
+    "modeReason": "The requested concert-stage world and professional IDE are both dark.",
+    "artFocalPoint": "upper right; portrait face and raised hand contained within the stage",
+    "textSafeRegion": "left 53%; feathered mask before the face",
+    "contrastStrategy": "Quiet portrait under conversation with dark violet overlay and opaque message surfaces; no artwork in settings.",
+    "allowedChanges": ["bounded home hero", "home composer geometry", "semantic palette", "sidebar width and materials", "typography", "conversation backdrop and materials", "settings and portal materials", "non-interactive decoration"],
+    "preserve": ["native controls", "native states", "native animations outside decorative layers", "native routing", "native content and focus order"],
+    "verificationViewports": ["1408x836", "1100x720", "820x600", "720x600", "620x520", "1440x640", "1750x1000"]
+  },
+  "palette": {
+    "canvas": "#100d19", "surface": "#1b1528", "raised": "#281e38", "text": "#f5effc", "muted": "#bcaecb", "accent": "#b996eb", "border": "#624a79", "focus": "#d3adff", "success": "#9bd4b5", "warning": "#e9cf99", "danger": "#f49baa", "terminalBackground": "#100d19", "terminalForeground": "#f5effc"
+  },
+  "platforms": ["windows"],
+  "author": { "name": "Local custom theme" },
+  "homepage": "https://codexthemes.ai",
+  "skillUrl": "https://codexthemes.ai/SKILL.md"
+}
