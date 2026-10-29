@@ -7,6 +7,7 @@ $env:CODEX_THEMES_HOME = Join-Path (Get-Location) 'library'
 node --experimental-transform-types library/themes/gem-purple-stage-v3.1/build-theme.ts
 node --experimental-transform-types runtime/validate-theme.ts library/themes/gem-purple-stage-v3.1
 node --experimental-transform-types --test runtime/injection-session.test.ts runtime/repair-renderer.test.ts
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-window-restore.ps1
 node --experimental-transform-types scripts/check-public-source.ts
 node --experimental-transform-types runtime/apply-theme.ts status
 node --experimental-transform-types runtime/qa-contrast.ts
@@ -16,6 +17,8 @@ node --experimental-transform-types runtime/qa-layout.ts
 每个 PowerShell 会话都要设置 `CODEX_THEMES_HOME`。状态应为 `active`，主题 ID 为 `gem-purple-stage-v3-1`，watcher 为 `active`。调试地址可能是 `127.0.0.1:9335` 或 `[::1]:9335`。不要让源码目录和安装目录同时运行主题 watcher；切换前在旧目录执行 `restore`。
 
 布局检查仅覆盖实际打开的页面。升级 Codex 后，应分别检查聊天、工作和 Codex 首页、含正文的对话、通知列表、设置、终端、首页选项及收起侧栏的悬浮列表，并在宽窄窗口中实际滚动。相关计数为 0 表示该组件尚未被检查，不能据此判定通过。适配要点见 [兼容性说明](compatibility.md)。
+
+ChatGPT 多行输入的诊断计数为 `multilineComposers` 和 `composerActionGroups`。检查长输入、展开/收起后底部无灰条、控件不覆盖编辑区。双屏恢复测试应在缩放率不同的屏幕分别最小化/恢复，确认普通窗口尺寸保持，并检查最大化和手动调整窗口仍正常。
 
 主区域空白时，先运行诊断，再按需恢复：
 

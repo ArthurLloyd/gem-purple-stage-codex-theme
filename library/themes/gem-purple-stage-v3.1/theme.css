@@ -47,6 +47,7 @@
   --color-surface-elevated:rgba(40,30,56,.96)!important;--color-surface-elevated-secondary:var(--gem-raised)!important;
   --color-background-mode-toggle-selected:#352548!important;--color-background-activity-control:#352548!important;
   --color-background-composer-action-bar:var(--gem-raised)!important;
+  --color-background-composer-surface:var(--gem-raised)!important;
   --color-background-execution-output:#171221!important;--color-codex-terminal-background:var(--gem-bg)!important;
   --color-codex-terminal-foreground:var(--gem-text)!important;
   --color-token-conversation-header:var(--gem-muted)!important;--color-token-conversation-body:var(--gem-text)!important;
@@ -145,6 +146,10 @@
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome:focus-within{border-color:#c9a3f5!important;box-shadow:0 0 0 3px rgba(181,124,237,.15),0 15px 45px rgba(0,0,0,.35)!important}
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome::before{content:"";position:absolute;left:15%;right:9%;bottom:15px;height:34px;z-index:0;pointer-events:none;border-radius:50%;background:radial-gradient(ellipse at 27% 75%,rgba(197,154,255,.34),transparent 42%),radial-gradient(ellipse at 62% 43%,rgba(216,173,255,.4),transparent 35%),radial-gradient(ellipse at 83% 85%,rgba(134,112,245,.25),transparent 26%);filter:blur(12px);animation:gem-flow 7s ease-in-out infinite alternate}
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome :is([data-composer-body],.ProseMirror,[class*="_ComposerLayoutInput_"]){background:transparent!important;color:var(--gem-text)!important;caret-color:var(--gem-focus)}
+/* The native action group paints this token across its remaining grid column.
+   In multiline mode it has its own row, so reveal the composer gradient below.
+   Single-line mode keeps an opaque themed surface during the native transition. */
+:root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome [data-composer-footer-responsive][data-composer-layout="multiline"]{--composer-layout-surface-background:transparent!important}
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome p.placeholder::before{color:#cab9db!important;opacity:.94!important}
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome p.placeholder[data-placeholder="随心输入"]::before{content:"写下此刻的灵感，让它变成光发散出去"!important}
 :root[data-codexthemes-theme="gem-purple-stage-v3-1"] .composer-surface-chrome p.placeholder::after{content:none!important}

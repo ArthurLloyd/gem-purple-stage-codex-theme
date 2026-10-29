@@ -7,7 +7,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { execFile, spawn } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 import { validateTheme } from './validate-theme.ts';
@@ -918,6 +918,11 @@ async function runWatcher(options: Options): Promise<void> {
   const sessions=new TargetSessions(options.port,runtimeSource(manifest.id,manifest.design.backgroundScope,css),manifest.id,revision);
   const clearedOverlays = new Set<string>();
   let stopping=false;
+  const guardPath = fileURLToPath(new URL('../launcher/watch-window-bounds.ps1', import.meta.url));
+  const windowGuard = process.platform === 'win32' ? spawn('powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', guardPath, '-OwnerPid', String(process.pid)],
+    {windowsHide:true, stdio:['ignore', 'inherit', 'inherit']}) : undefined;
+  windowGuard?.on('error', error => console.error('Window restore guard unavailable:', error.message));
   process.on('SIGTERM',()=>{stopping=true;}); process.on('SIGINT',()=>{stopping=true;});
   try {
     while(!stopping && await owns()) {
@@ -936,6 +941,7 @@ async function runWatcher(options: Options): Promise<void> {
       await delay(1200);
     }
   } finally {
+    windowGuard?.kill();
     await sessions.close();
     await atomicJson(heartbeatPath,{token:options.watchToken,pid:process.pid,at:Date.now(),stopped:true});
   }

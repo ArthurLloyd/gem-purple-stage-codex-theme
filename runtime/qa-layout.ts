@@ -30,7 +30,7 @@ export const layoutProbeSource = `(() => {
     return {left,right,top,bottom};
   };
   const mains = [...document.querySelectorAll('main[data-app-shell-main-surface],main.main-surface,main[class*="_MainContentSurface_"]')];
-  let searchInputs = 0, placeholders = 0, suggestionMenus = 0, homeActionBrowsers = 0, homeActionRows = 0, homeExpandedEditors = 0, sidebarPeeks = 0, sidebarActivityRows = 0;
+  let searchInputs = 0, placeholders = 0, suggestionMenus = 0, homeActionBrowsers = 0, homeActionRows = 0, homeExpandedEditors = 0, sidebarPeeks = 0, sidebarActivityRows = 0, multilineComposers = 0, composerActionGroups = 0;
   for (const row of document.querySelectorAll('aside.app-shell-left-panel .sidebar-item:has([data-thread-secondary-title])')) {
     if (!visible(row) || row.closest('[inert]')) continue;
     sidebarActivityRows++;
@@ -63,6 +63,19 @@ export const layoutProbeSource = `(() => {
   }
   for (const main of mains.filter(visible)) {
     const composer = main.querySelector('.composer-surface-chrome');
+    for (const footer of main.querySelectorAll('.composer-surface-chrome [data-composer-footer-responsive][data-composer-layout="multiline"]')) {
+      if (!visible(footer)) continue;
+      multilineComposers++;
+      const input = footer.querySelector('[data-composer-input]');
+      const viewport = input && clippedRect(input);
+      for (const group of footer.children) {
+        if (!group.classList.contains('bg-(--composer-layout-surface-background)') || !visible(group)) continue;
+        composerActionGroups++;
+        if (getComputedStyle(group).backgroundColor !== 'rgba(0, 0, 0, 0)') issues.push('multiline-composer-opaque-action-bar');
+        const controls = group.getBoundingClientRect();
+        if (viewport && viewport.bottom > controls.top + 1) issues.push('multiline-composer-controls-overlap-input');
+      }
+    }
     const shell = main.querySelector('.gem-v3-composer-shell') || composer;
     if (overlaps(main.querySelector('.gem-v3-cards'), shell)) issues.push('home-cards-overlap-composer-controls');
     if (overlaps(main.querySelector('[data-gem-v31-home-heading]'), shell)) issues.push('home-heading-overlap-composer');
@@ -136,7 +149,7 @@ export const layoutProbeSource = `(() => {
     }
   }
   return {issues: [...new Set(issues)], surfaces: mains.length, visibleSurfaces: mains.filter(visible).length,
-    searchInputs, placeholders, suggestionMenus, homeActionBrowsers, homeActionRows, homeExpandedEditors, sidebarPeeks, sidebarActivityRows};
+    searchInputs, placeholders, suggestionMenus, homeActionBrowsers, homeActionRows, homeExpandedEditors, sidebarPeeks, sidebarActivityRows, multilineComposers, composerActionGroups};
 })()`;
 
 export async function checkLayouts(port = 9335) {

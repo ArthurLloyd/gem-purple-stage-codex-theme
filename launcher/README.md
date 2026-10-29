@@ -6,6 +6,8 @@
 
 启动脚本通过 `Get-AppxPackage -Name OpenAI.Codex` 和包清单定位当前应用；`activate-codex.ps1` 使用 MSIX 激活接口保留包身份。调试探测同时检查 IPv4 与 IPv6 回环地址，排除透明桌宠页面，等待原生 `app://-` 页面后应用主题并确认 watcher 状态。
 
+watcher 在 Windows 上同时运行 `watch-window-bounds.ps1`，通过 WinEvent 纠正混合 DPI 下最小化恢复时的异常窗口增大。helper 只识别 Codex 的普通窗口，保留恢复后的坐标、焦点和层叠顺序；watcher 停止后退出，无需额外安装程序。
+
 专用入口首次启用调试端口时可能退出并重启后台 Codex；使用前先保存工作。日志在 `library/state/launcher.log`。
 
 `install-gem-purple-shortcut.ps1` 创建项目、桌面及开始菜单入口，使用本机缓存的客户端图标；客户端更新后不依赖旧版本的 WindowsApps 路径。安装版卸载时，只移除仍指向该安装目录的快捷方式。

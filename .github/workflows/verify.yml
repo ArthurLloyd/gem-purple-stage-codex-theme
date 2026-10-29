@@ -20,6 +20,9 @@ jobs:
       - name: Check publishable sources
         shell: powershell
         run: node --experimental-transform-types scripts/check-public-source.ts
+      - name: Mixed-DPI window restore regression tests
+        shell: powershell
+        run: ./scripts/test-window-restore.ps1
       - name: Build offline packages
         shell: powershell
         run: ./scripts/build-release.ps1
