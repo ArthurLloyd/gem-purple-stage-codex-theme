@@ -11,7 +11,6 @@ $nativeLauncher = Test-Path -LiteralPath $launcher -PathType Leaf
 if (-not $nativeLauncher) { $launcher = Join-Path $projectRoot 'G.E.M. Purple Codex.vbs' }
 if (-not (Test-Path -LiteralPath $launcher)) { throw "Launcher missing: $launcher" }
 $wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
-$shell = New-Object -ComObject WScript.Shell
 $desktop = $DesktopDirectory
 if (-not $desktop -or -not (Test-Path -LiteralPath $desktop)) {
     throw 'Desktop folder is unavailable; no shortcut was changed.'
@@ -66,22 +65,57 @@ if (-not ('GemPurpleShortcutShell' -as [type])) {
     Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 public static class GemPurpleShortcutShell {
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     public static extern void SHChangeNotify(int eventId, uint flags, string item, IntPtr unused);
+
+    // Use the Unicode shell-link interface directly. WScript.Shell's TargetPath
+    // setter rejects valid executable paths on some clean Windows installations.
+    [ComImport, Guid("00021401-0000-0000-C000-000000000046")]
+    private class ShellLink { }
+    [ComImport, Guid("000214F9-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellLinkW {
+        void GetPath(IntPtr path, int size, IntPtr data, uint flags);
+        void GetIDList(out IntPtr idList);
+        void SetIDList(IntPtr idList);
+        void GetDescription(IntPtr text, int size);
+        void SetDescription([MarshalAs(UnmanagedType.LPWStr)] string text);
+        void GetWorkingDirectory(IntPtr path, int size);
+        void SetWorkingDirectory([MarshalAs(UnmanagedType.LPWStr)] string path);
+        void GetArguments(IntPtr text, int size);
+        void SetArguments([MarshalAs(UnmanagedType.LPWStr)] string text);
+        void GetHotkey(out short hotkey);
+        void SetHotkey(short hotkey);
+        void GetShowCmd(out int command);
+        void SetShowCmd(int command);
+        void GetIconLocation(IntPtr path, int size, out int index);
+        void SetIconLocation([MarshalAs(UnmanagedType.LPWStr)] string path, int index);
+        void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string path, uint reserved);
+        void Resolve(IntPtr window, uint flags);
+        void SetPath([MarshalAs(UnmanagedType.LPWStr)] string path);
+    }
+    public static void Save(string file, string target, string arguments, string directory, string icon) {
+        object instance = new ShellLink();
+        try {
+            var link = (IShellLinkW)instance;
+            link.SetPath(target);
+            link.SetArguments(arguments);
+            link.SetWorkingDirectory(directory);
+            link.SetDescription("Launch Codex with G.E.M. Purple Stage v3.1");
+            link.SetIconLocation(icon, 0);
+            link.SetShowCmd(7);
+            ((IPersistFile)instance).Save(file, true);
+        } finally { Marshal.FinalReleaseComObject(instance); }
+    }
 }
 '@
 }
 foreach ($shortcutPath in @((Join-Path $projectRoot 'G.E.M. Purple Codex.lnk'), (Join-Path $desktop 'G.E.M. Purple Codex.lnk'), (Join-Path $ProgramsDirectory 'G.E.M. Purple Codex.lnk'))) {
     $existed = Test-Path -LiteralPath $shortcutPath -PathType Leaf
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = if ($nativeLauncher) { $launcher } else { $wscript }
-    $shortcut.Arguments = if ($nativeLauncher) { '' } else { '"' + $launcher + '"' }
-    $shortcut.WorkingDirectory = $projectRoot
-    $shortcut.WindowStyle = 7
-    $shortcut.Description = 'Launch Codex with G.E.M. Purple Stage v3.1'
-    $shortcut.IconLocation = "$icon,0"
-    $shortcut.Save()
+    $targetPath = if ($nativeLauncher) { $launcher } else { $wscript }
+    $arguments = if ($nativeLauncher) { '' } else { '"' + $launcher + '"' }
+    [GemPurpleShortcutShell]::Save($shortcutPath, $targetPath, $arguments, $projectRoot, $icon)
     # SHCNE_UPDATEITEM / SHCNE_CREATE, with SHCNF_PATHW.
     $eventId = if ($existed) { 0x2000 } else { 0x0002 }
     [GemPurpleShortcutShell]::SHChangeNotify($eventId, 0x0005, $shortcutPath, [IntPtr]::Zero)
